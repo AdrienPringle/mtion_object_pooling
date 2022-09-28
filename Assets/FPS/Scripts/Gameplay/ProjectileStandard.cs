@@ -74,7 +74,7 @@ namespace Unity.FPS.Gameplay
 
             m_ProjectileBase.OnShoot += OnShoot;
 
-            Destroy(gameObject, MaxLifeTime);
+            // Destroy(gameObject, MaxLifeTime);
         }
 
         new void OnShoot()
@@ -257,7 +257,8 @@ namespace Unity.FPS.Gameplay
             }
 
             // Self Destruct
-            Destroy(this.gameObject);
+            // Destroy(this.gameObject);
+            this.Destroy();
         }
 
         void OnDrawGizmosSelected()

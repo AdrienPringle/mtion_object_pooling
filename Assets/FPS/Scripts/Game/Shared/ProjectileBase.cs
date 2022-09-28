@@ -13,6 +13,12 @@ namespace Unity.FPS.Game
 
         public UnityAction OnShoot;
 
+        private ObjectPool<ProjectileBase> projectilePool; 
+
+        public void setProjectilePool(ObjectPool<ProjectileBase> pool){
+            this.projectilePool = pool;
+        }
+
         public void Shoot(WeaponController controller)
         {
             Owner = controller.Owner;
@@ -22,6 +28,10 @@ namespace Unity.FPS.Game
             InitialCharge = controller.CurrentCharge;
 
             OnShoot?.Invoke();
+        }
+
+        public void Destroy(){
+            projectilePool.Release(this);
         }
     }
 }

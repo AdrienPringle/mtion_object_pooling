@@ -163,6 +163,30 @@ namespace Unity.FPS.Game
 
         private Queue<Rigidbody> m_PhysicalAmmoPool;
 
+        private ObjectPool<ProjectileBase> projectilePool;  
+
+        private ProjectileBase createPooledProjectile(){
+            ProjectileBase projectile = Instantiate(ProjectilePrefab);
+            projectile.gameObject.SetActive(false);
+            return projectile;
+        }
+
+        private void onProjectileGet(ProjectileBase projectile){
+            projectile.setProjectilePool(projectilePool);
+            Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
+            projectile.transform.position = WeaponMuzzle.position;
+            projectile.transform.rotation = Quaternion.LookRotation(shotDirection);
+            projectile.gameObject.SetActive(true);
+        }
+
+        private void onProjectileRelease(ProjectileBase projectile){
+            projectile.gameObject.SetActive(false);
+        }
+
+        private void onProjectileDestroy(ProjectileBase projectile){
+            Destroy(projectile);
+        }
+
         void Awake()
         {
             m_CurrentAmmo = MaxAmmo;
@@ -194,6 +218,14 @@ namespace Unity.FPS.Game
                     m_PhysicalAmmoPool.Enqueue(shell.GetComponent<Rigidbody>());
                 }
             }
+
+            projectilePool = new ObjectPool<ProjectileBase>(
+                createPooledProjectile, 
+                onProjectileGet, 
+                onProjectileRelease, 
+                onProjectileDestroy, 
+                50
+            );
         }
 
         public void AddCarriablePhysicalBullets(int count) => m_CarriedPhysicalBullets = Mathf.Max(m_CarriedPhysicalBullets + count, MaxAmmo);
@@ -446,9 +478,11 @@ namespace Unity.FPS.Game
             // spawn all bullets with random direction
             for (int i = 0; i < bulletsPerShotFinal; i++)
             {
-                Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
-                ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
-                    Quaternion.LookRotation(shotDirection));
+                // Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
+                // ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
+                //     Quaternion.LookRotation(shotDirection));
+                // newProjectile.Shoot(this);
+                ProjectileBase newProjectile = projectilePool.Get();
                 newProjectile.Shoot(this);
             }
 
